@@ -18,50 +18,35 @@ export function App() {
   const [page, setPage] = useState(1);
   const [hasMoreImages, setHasMoreImages] = useState(true);
 
-  const FetchPostByQuerry = async () => {
-    try {
-      setIsLoading(true);
-      const newImages = await findImage(querry, page);
-      if (newImages.length === 0) {
-        swal(
-          'Oops',
-          `Sorry, no images found for the query "${querry}"`,
-          'error'
-        );
-      } else {
-        const updatedImages = [...images, ...newImages];
-        setImages(updatedImages);
-        setPage(page + 1);
-        setHasMoreImages(updatedImages.length >= 12);
-      }
-    } catch (error) {
-      setError(error.message);
-      swal('Error', 'Error 404 - "Not Found"', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (querry !== '') {
-      FetchPostByQuerry();
-    }
-  }, [querry]);
+    if (querry === '') return;
+    const FetchPostByQuerry = async () => {
+      try {
+        setIsLoading(true);
+        const newImages = await findImage(querry, page);
+        if (newImages.length === 0) {
+          swal(
+            'Oops',
+            `Sorry, no images found for the querry "${querry}"`,
+            'error'
+          );
+          return;
+        }
+        setImages(prevImages => [...prevImages, ...newImages]);
+        setHasMoreImages(newImages.length >= 12);
+      } catch (error) {
+        setError(error.message);
+        swal('Error', 'Error 404 - "Not Found"', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    FetchPostByQuerry();
+  }, [querry, page]);
 
   const loadMoreImages = () => {
-    setIsLoading(true);
-
-    findImage(querry, page)
-      .then(newImages => {
-        setImages(prevImages => [...prevImages, ...newImages]);
-        setPage(page + 1);
-        setIsLoading(false);
-      })
-      .catch(error => {
-        setError(error.message);
-        setIsLoading(false);
-        setHasMoreImages(false);
-      });
+    setPage(prev => prev + 1);
   };
 
   const handleSearchSubmit = e => {
